@@ -86,16 +86,29 @@ resource "aws_key_pair" "cle_rb" {
   key_name = "rb"
   public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDKBQfsPCrZpuWJY3fFH43Wf5Vl3IwYWtNrOvz9AHW73DKyDGd+8JIQNbEl2ESdtBMPgZEpLvvYj7pZKKeVKVxRcbY90zvcqtNkD3xER6U5gJ2o99xz1wfDZDlU3yq1HH2+telhXHQoFEfahWBfAeDOdelVTExRJY4uJfUntHWufQ4X9XcaiAbaEQ3m89Cc3/ESijrg0tCR4wF9I8X1PEl7k1P0UB4VVWUqTU18spbNHGOA816qyvhv1pA2x6pV4fvMjDKYQ0bJp5fGjFTGZZtL3d/s4UGOAzr8yv+6Qh3S5JPT4v6kWqaJecJot18Hh3FKjqeD16Nq/TS9gbjV/6in ec2-user@ip-172-31-11-67²"
 }
+data "template_file" "userdatarb" {
+template = "${file("${path.module}/userdata.tpl")}"
+vars {
+username = "rb"
+}
+}
 ################ instance
 resource "aws_instance" "web" {
   ami = "${data.aws_ami.ubuntu.id}"
   instance_type = "t2.micro"
   subnet_id = "${aws_subnet.pubnet1.id}"
   associate_public_ip_address = true
+  user_data = "${data.template_file.userdatarb.rendered} "
   key_name = "${aws_key_pair.cle_rb.id}"
   vpc_security_group_ids = ["${aws_security_group.allow_http.id}"]
 
   tags {
     Name = "helloword"
   }
+}
+
+###################"
+output "webinstance_publique_ip"
+{
+value = "${aws_instance.web.public_ip}"
 }
